@@ -164,7 +164,7 @@ func (impl AttendanceRepository) PunchOut(userID string, id int) error {
 	var existingPunch attendanceModels.PunchInOut
 	err := impl.dbConnection.Model(&existingPunch).
 		Column("attendance_id").
-		Where("user_id = ? AND punch_id = ?", userID, id).
+		Where("user_id = ? AND id = ?", userID, id).
 		Select()
 	return err
 }
