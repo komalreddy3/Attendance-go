@@ -72,7 +72,9 @@ func (impl LoginRestHandler) Login(w http.ResponseWriter, r *http.Request) {
 		</html>
 	`)
 	err := tmpl.Execute(w, nil)
-	impl.logger.Errorw("Execution of login went wrong", err)
+	if err != nil {
+		impl.logger.Errorw("Execution of login went wrong", err)
+	}
 
 }
 func (impl LoginRestHandler) Logout(w http.ResponseWriter, r *http.Request) {

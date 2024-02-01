@@ -1,6 +1,7 @@
 package loginRepository
 
 import (
+	"fmt"
 	"github.com/go-pg/pg/v10"
 	"github.com/komalreddy3/Attendance-go/pkg/login/loginRepository/loginModels"
 	"go.uber.org/zap"
@@ -58,12 +59,16 @@ func (impl LoginRepository) AuthenticateUser(username, password, userRole string
 	err := impl.dbConnection.Model(&user).
 		Where("username = ? AND role = ?", username, role).
 		Select()
+	fmt.Println("Here")
+	fmt.Println(err)
 	if err != nil {
 		return false
 	}
 
 	// Compare the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	fmt.Println("Here2")
+	fmt.Println(err)
 	return err == nil
 }
 func (impl LoginRepository) CheckRole(content interface{}) loginModels.UserRoleType {

@@ -1,9 +1,10 @@
-package principalServices
+package principalUnitTest
 
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance/attendanceServices/attendanceServiceBean"
 	"github.com/komalreddy3/Attendance-go/pkg/principal/principalRepository"
+	"github.com/komalreddy3/Attendance-go/pkg/principal/principalServices"
 	"github.com/komalreddy3/Attendance-go/pkg/principal/principalServices/principalServiceBean"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -15,8 +16,12 @@ func TestGetTeacherAttendance(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockPrincipalRepo := principalRepository.NewMockPrincipalRepo(ctrl)
-	impl := PrincipalServiceImpl{principalRepository: mockPrincipalRepo, logger: zap.NewNop().Sugar()}
+	//impl := principalServices.PrincipalServiceImpl{
+	//	//principalRepository: mockPrincipalRepo,
+	//	//logger: zap.NewNop().Sugar(),
+	//}
 
+	impl := principalServices.NewPrincipalServiceImpl(mockPrincipalRepo, zap.NewNop().Sugar())
 	// Set up expectations and behaviors for FetchAttendance
 	teacherID := "teacher1"
 	month := 1

@@ -23,10 +23,11 @@ const (
 )
 
 type User struct {
-	ID       string       `json:"id" pg:",pk"`
-	Username string       `json:"username"`
-	Password string       `json:"password"`
-	Role     UserRoleType `json:"role"` // "principal", "teacher", or "student"
+	tableName struct{}     `sql:"user"`
+	ID        string       `json:"id" pg:",pk"`
+	Username  string       `json:"username"`
+	Password  string       `json:"password"`
+	Role      UserRoleType `json:"role"` // "principal", "teacher", or "student"
 }
 
 func (j JWT) Create(content interface{}) (string, error) {

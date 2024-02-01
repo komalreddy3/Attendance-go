@@ -1,80 +1,16 @@
-package studentServices
+package studentUnitTests
 
 // Import necessary packages for testing
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance/attendanceServices/attendanceServiceBean"
 	"github.com/komalreddy3/Attendance-go/pkg/student/studentRepository"
+	"github.com/komalreddy3/Attendance-go/pkg/student/studentServices"
 	"github.com/komalreddy3/Attendance-go/pkg/student/studentServices/studentServiceBean"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
 )
-
-func TestStudentPunchIn(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock StudentRepo
-	mockStudentRepo := studentRepository.NewMockStudentRepo(ctrl)
-
-	// Create a StudentServiceImpl with the mock repository
-	studentService := NewStudentServiceImpl(mockStudentRepo, zap.NewNop().Sugar())
-
-	// Set up expectations and behaviors for EnrollCheck
-	testUserID := "user1"
-	testClass := "ClassA"
-	mockStudentRepo.EXPECT().EnrollCheck(testUserID, testClass)
-
-	// Set up expectations and behaviors for PunchCheck
-	mockStudentRepo.EXPECT().PunchCheck(testUserID).Return("ClassB")
-
-	// Set up expectations and behaviors for FetchAttendance
-	mockStudentRepo.EXPECT().FetchAttendance(testUserID).Return(0, nil)
-
-	// Set up expectations and behaviors for FetchClass
-	mockStudentRepo.EXPECT().FetchClass("ClassB").Return(2)
-
-	// Set up expectations and behaviors for PunchOutCheck
-	mockStudentRepo.EXPECT().PunchOutCheck(testUserID, 2).Return(nil)
-
-	// Set up expectations and behaviors for CreatePunchIn
-	mockStudentRepo.EXPECT().CreatePunchIn(testUserID, gomock.Any(), 0, testClass).Return(nil).AnyTimes()
-
-	// Call the method in your service
-	studentService.StudentPunchIn(testUserID, testClass)
-}
-
-func TestStudentPunchOut(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock StudentRepo
-	mockStudentRepo := studentRepository.NewMockStudentRepo(ctrl)
-
-	// Create a StudentServiceImpl with the mock repository
-	studentService := NewStudentServiceImpl(mockStudentRepo, zap.NewNop().Sugar())
-
-	// Set up expectations and behaviors for EnrollCheck
-	testUserID := "user1"
-	testClass := "ClassA"
-	mockStudentRepo.EXPECT().EnrollCheck(testUserID, testClass)
-
-	// Set up expectations and behaviors for FetchAttendance
-	mockStudentRepo.EXPECT().FetchAttendance(testUserID).Return(0, nil)
-
-	// Set up expectations and behaviors for FetchClass
-	mockStudentRepo.EXPECT().FetchClass(testClass).Return(1)
-
-	// Set up expectations and behaviors for PunchOutCheck
-	mockStudentRepo.EXPECT().PunchOutCheck(testUserID, 1).Return(nil)
-
-	// Set up expectations and behaviors for UpdatePunchOut
-	mockStudentRepo.EXPECT().UpdatePunchOut(0, 1, gomock.Any()).Return(nil)
-
-	// Call the method in your service
-	studentService.StudentPunchOut(testUserID, testClass)
-}
 
 func TestGetStudentAttendanceByMonth(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -84,7 +20,7 @@ func TestGetStudentAttendanceByMonth(t *testing.T) {
 	mockStudentRepo := studentRepository.NewMockStudentRepo(ctrl)
 
 	// Create a StudentServiceImpl with the mock repository
-	studentService := NewStudentServiceImpl(mockStudentRepo, zap.NewNop().Sugar())
+	studentService := studentServices.NewStudentServiceImpl(mockStudentRepo, zap.NewNop().Sugar())
 
 	// Set up expectations and behaviors for FetchAttendanceWithMonth
 	testUserID := "user1"

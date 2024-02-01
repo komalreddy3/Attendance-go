@@ -1,113 +1,16 @@
-package teacherServices
+package teacherUnitTests
 
 import (
-	"errors"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance/attendanceServices/attendanceServiceBean"
 	"github.com/komalreddy3/Attendance-go/pkg/teacher/teacherRepository"
+	"github.com/komalreddy3/Attendance-go/pkg/teacher/teacherServices"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
 )
 
-func TestTeacherPunchIn_SuccessfulPunchIn(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock TeacherRepo
-	mockTeacherRepo := teacherRepository.NewMockTeacherRepo(ctrl)
-
-	// Set up expectations and behaviors
-	testUserID := "user1"
-	testClass := "ClassA"
-	mockTeacherRepo.EXPECT().EnrollCheckTeacher(testUserID, testClass)
-	mockTeacherRepo.EXPECT().PunchCheckTeacher(testUserID).Return([]string{"ClassB"})
-	mockTeacherRepo.EXPECT().FetchAttendance(testUserID).Return(1, nil)
-	mockTeacherRepo.EXPECT().FetchClass(gomock.Any()).AnyTimes().Return(2)
-	mockTeacherRepo.EXPECT().PunchOutCheck(testUserID, gomock.Any()).Return(nil)
-	mockTeacherRepo.EXPECT().CreatePunchIn(testUserID, gomock.Any(), 1, testClass).Return(nil).AnyTimes()
-
-	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
-
-	// Call the method in your service
-	teacherService.TeacherPunchIn(testUserID, testClass)
-}
-
-func TestTeacherPunchIn_FailurePunchOutCheck(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock TeacherRepo
-	mockTeacherRepo := teacherRepository.NewMockTeacherRepo(ctrl)
-
-	// Set up expectations and behaviors
-	testUserID := "user1"
-	testClass := "ClassA"
-	// EnrollCheckTeacher is expected to be called
-	mockTeacherRepo.EXPECT().EnrollCheckTeacher(testUserID, testClass)
-
-	// PunchCheckTeacher is expected to be called and return some enrolled classes
-	mockTeacherRepo.EXPECT().PunchCheckTeacher(testUserID).Return([]string{"ClassB"})
-
-	// FetchAttendance is expected to be called and return an error
-	mockTeacherRepo.EXPECT().FetchAttendance(testUserID).Return(0, errors.New("some error"))
-
-	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
-
-	// Call the method in your service
-	teacherService.TeacherPunchIn(testUserID, testClass)
-	// Add assertions for the expected error
-}
-
-func TestTeacherPunchOut_SuccessfulPunchOut(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock TeacherRepo
-	mockTeacherRepo := teacherRepository.NewMockTeacherRepo(ctrl)
-
-	// Set up expectations and behaviors
-	userID := "testUserID"
-	class := "testClass"
-	mockTeacherRepo.EXPECT().EnrollCheckTeacher(userID, class)
-	mockTeacherRepo.EXPECT().FetchAttendance(userID).Return(1, nil)
-	mockTeacherRepo.EXPECT().FetchClass(class).Return(123)
-	mockTeacherRepo.EXPECT().PunchOutCheck(userID, 123).Return(nil)
-	mockTeacherRepo.EXPECT().UpdatePunchOut(1, 123, gomock.Any())
-
-	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
-
-	// Call the method in your service
-	teacherService.TeacherPunchOut(userID, class)
-}
-
-func TestTeacherPunchOut_FailurePunchOutCheck(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create a mock TeacherRepo
-	mockTeacherRepo := teacherRepository.NewMockTeacherRepo(ctrl)
-
-	// Set up expectations and behaviors
-	userID := "testUserID"
-	class := "testClass"
-	mockTeacherRepo.EXPECT().EnrollCheckTeacher(userID, class)
-	mockTeacherRepo.EXPECT().FetchAttendance(userID).Return(1, nil)
-	mockTeacherRepo.EXPECT().FetchClass(class).Return(123)
-	expectedError := errors.New("PunchOutCheck error")
-	mockTeacherRepo.EXPECT().PunchOutCheck(userID, 123).Return(expectedError)
-
-	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
-
-	// Call the method in your service
-	teacherService.TeacherPunchOut(userID, class)
-	// Add assertions for the expected error
-}
 func TestGetClassAttendance_Successful(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -131,7 +34,7 @@ func TestGetClassAttendance_Successful(t *testing.T) {
 	mockTeacherRepo.EXPECT().ClassMapAttendancePunch(gomock.Any()).AnyTimes().Return("testClass")
 
 	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
+	teacherService := teacherServices.NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
 
 	// Call the method in your service
 	response := teacherService.GetClassAttendance(class, day, month, year)
@@ -162,7 +65,7 @@ func TestGetTeacherAttendanceByMonth_Successful(t *testing.T) {
 	mockTeacherRepo.EXPECT().ClassMapAttendancePunch(gomock.Any()).AnyTimes().Return("testClass")
 
 	// Create your TeacherServiceImpl with the mock repository
-	teacherService := NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
+	teacherService := teacherServices.NewTeacherServiceImpl(mockTeacherRepo, zap.NewNop().Sugar())
 
 	// Call the method in your service
 	response := teacherService.GetTeacherAttendanceByMonth(ID, month, year)

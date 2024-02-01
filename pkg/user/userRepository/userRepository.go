@@ -4,6 +4,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/komalreddy3/Attendance-go/pkg/user/userRepository/userModels"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -85,7 +86,13 @@ func (impl UserRepository) FetchUser(role string) []userModels.User {
 	return students
 }
 func (impl UserRepository) InsertingStudent(id, username, password string) error {
-	_, err := impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: password, Role: userModels.Student}).Insert()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		impl.logger.Errorw("Error hashing the password", "error", err)
+		// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
+		return err
+	}
+	_, err = impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: string(hashedPassword), Role: userModels.Student}).Insert()
 	if err != nil {
 		impl.logger.Errorw("Error inserting student data into the database", "error", err)
 		return err
@@ -93,7 +100,13 @@ func (impl UserRepository) InsertingStudent(id, username, password string) error
 	return err
 }
 func (impl UserRepository) InsertingTeacher(id, username, password string) error {
-	_, err := impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: password, Role: userModels.Teacher}).Insert()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		impl.logger.Errorw("Error hashing the password", "error", err)
+		// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
+		return err
+	}
+	_, err = impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: string(hashedPassword), Role: userModels.Teacher}).Insert()
 	if err != nil {
 		impl.logger.Errorw("Error inserting student data into the database", "error", err)
 		return err

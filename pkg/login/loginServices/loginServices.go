@@ -64,10 +64,11 @@ func (impl *LoginServiceImpl) AuthenticateRole(cookie *http.Cookie, check string
 func (impl *LoginServiceImpl) Login(username, password, userRole string) string {
 	userID, err := impl.loginRepository.CheckCreds(username, userRole)
 	if err != nil {
-		impl.logger.Errorw("Invalid login credentials", err)
+		impl.logger.Errorw("Invalid login credentials first thing", err)
 		return ""
 	}
 	if impl.loginRepository.AuthenticateUser(username, password, userRole) {
+		fmt.Println("Entered")
 		prvKey, err := os.ReadFile("private.pem")
 		if err != nil {
 			log.Fatalln(err)
