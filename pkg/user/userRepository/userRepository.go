@@ -1,10 +1,10 @@
 package userRepository
 
 import (
+	"fmt"
 	"github.com/go-pg/pg/v10"
 	"github.com/komalreddy3/Attendance-go/pkg/user/userRepository/userModels"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -22,6 +22,9 @@ type UserRepo interface {
 	InsertClassMap(id string, classId int) error
 	ClassMappingTeacher(classname []string) (map[string]int, error)
 	FetchUser(role string) []userModels.User
+	FetchClassUser(userid string) int
+	FetchClasses(username string) []string
+	AllClasses() []string
 }
 
 func NewUserRepositoryImpl(dbConnection *pg.DB, logger *zap.SugaredLogger) *UserRepository {
@@ -30,9 +33,95 @@ func NewUserRepositoryImpl(dbConnection *pg.DB, logger *zap.SugaredLogger) *User
 		logger:       logger,
 	}
 }
+func (impl UserRepository) AllClasses() []string {
+	// Fetch all class names
+	var classes []userModels.Class
+	err := impl.dbConnection.Model(&classes).Select()
+	if err != nil {
+		//log.Fatalf("Error fetching class names: %v\n", err)
+		impl.logger.Errorw("error fetching class name")
+		return nil
+	}
+
+	var classNames []string
+	for _, class := range classes {
+		classNames = append(classNames, class.ClassName)
+	}
+
+	fmt.Println("Class Names:")
+	for _, name := range classNames {
+		fmt.Println(name)
+	}
+	return classNames
+}
+func (impl UserRepository) FetchClasses(username string) []string {
+	// Loop through each student and fetch their associated class names
+	//for i, student := range students {
+	var classMappingUsers []userModels.ClassMappingUser
+	var userID string
+	err := impl.dbConnection.Model(&userModels.User{}).
+		Column("id").
+		Where("username=?", username).
+		Select(&userID)
+	if err != nil {
+		impl.logger.Errorw("Error fetching student", err)
+	}
+	err = impl.dbConnection.Model(&classMappingUsers).
+		Where("user_id = ?", userID).
+		Select()
+	//fmt.Println(userID)
+	//fmt.Println(classMappingUsers)
+	//fmt.Println(len(classMappingUsers))
+	// Create a map to store class names by class ID
+	classIDToName := make(map[int]string)
+
+	// Extract class IDs from classMappingUsers and collect unique IDs
+	var classIDs []int
+	for _, mapping := range classMappingUsers {
+		classIDs = append(classIDs, mapping.ClassID)
+	}
+
+	// Query the Class table to fetch class names for each class ID
+	var classes []userModels.Class
+	err = impl.dbConnection.Model(&classes).
+		Where("class_id IN (?)", pg.In(classIDs)).
+		Select()
+	if err != nil {
+		// Handle the error
+	}
+
+	// Populate classIDToName map with class names
+	for _, classInfo := range classes {
+		classIDToName[classInfo.ClassID] = classInfo.ClassName
+	}
+	//// Extract class names from classMappingUsers
+	//classnames := make([]string, len(classMappingUsers))
+	//for j, mapping := range classMappingUsers {
+	//	classnames[j] = mapping.Class.ClassName
+	//}
+	// Extract class names from classMappingUsers
+	classnames := make([]string, len(classMappingUsers))
+	for j, mapping := range classMappingUsers {
+		// Get class name from classIDToName map
+		classnames[j] = classIDToName[mapping.ClassID]
+	}
+
+	// Assign classnames to the student
+	//students[i].Classnames = classnames
+	//}
+	return classnames
+}
+func (impl UserRepository) FetchClassUser(userid string) int {
+	var classMapping userModels.ClassMappingUser
+	_ = impl.dbConnection.Model(&classMapping).
+		Where("user_id = ?", userid).
+		Select()
+	return classMapping.ClassID
+}
 func (impl UserRepository) CheckEnrollment(userid, class string) error {
 	// Check if the user is enrolled in the class
 	var classMappingUser userModels.ClassMappingUser
+	fmt.Println("in check enrollemnt", class, userid)
 	err := impl.dbConnection.Model(&classMappingUser).
 		Where("user_id = ? AND class_id IN (SELECT class_id FROM classes WHERE class_name = ?)", userid, class).
 		Select()
@@ -64,7 +153,7 @@ func (impl UserRepository) FetchStudent(userid string) string {
 	var userID string
 	err := impl.dbConnection.Model(&userModels.User{}).
 		Column("id").
-		Where("role = ? AND id=?", "student", userid).
+		Where("role = ? AND id=?", userModels.Student, userid).
 		Select(&userID)
 	if err != nil {
 		impl.logger.Errorw("Error fetching student", err)
@@ -86,13 +175,13 @@ func (impl UserRepository) FetchUser(role string) []userModels.User {
 	return students
 }
 func (impl UserRepository) InsertingStudent(id, username, password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		impl.logger.Errorw("Error hashing the password", "error", err)
-		// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
-		return err
-	}
-	_, err = impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: string(hashedPassword), Role: userModels.Student}).Insert()
+	//hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	//if err != nil {
+	//	impl.logger.Errorw("Error hashing the password", "error", err)
+	//	// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
+	//	return err
+	//}
+	_, err := impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: password, Role: userModels.Student}).Insert()
 	if err != nil {
 		impl.logger.Errorw("Error inserting student data into the database", "error", err)
 		return err
@@ -100,13 +189,13 @@ func (impl UserRepository) InsertingStudent(id, username, password string) error
 	return err
 }
 func (impl UserRepository) InsertingTeacher(id, username, password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		impl.logger.Errorw("Error hashing the password", "error", err)
-		// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
-		return err
-	}
-	_, err = impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: string(hashedPassword), Role: userModels.Teacher}).Insert()
+	//hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	//if err != nil {
+	//	impl.logger.Errorw("Error hashing the password", "error", err)
+	//	// http.Error(w, "Error hashing the password", http.StatusInternalServerError)
+	//	return err
+	//}
+	_, err := impl.dbConnection.Model(&userModels.User{ID: id, Username: username, Password: password, Role: userModels.Teacher}).Insert()
 	if err != nil {
 		impl.logger.Errorw("Error inserting student data into the database", "error", err)
 		return err
@@ -117,11 +206,20 @@ func (impl UserRepository) InsertClass(classname string) (int, error) {
 	newClass := userModels.Class{
 		ClassName: classname,
 	}
-	_, err := impl.dbConnection.Model(&newClass).Returning("class_id").Insert()
+	var id int
+	err := impl.dbConnection.Model(&userModels.Class{}).
+		Column("class_id").
+		Where("class_name = ?", classname).
+		Select(&id)
 	if err != nil {
-		impl.logger.Errorw("Error inserting new class data", "error", err)
+		_, err := impl.dbConnection.Model(&newClass).Returning("class_id").Insert()
+		if err != nil {
+			impl.logger.Errorw("Error inserting new class data", "error", err)
+		}
+		return newClass.ClassID, err
 	}
-	return newClass.ClassID, err
+	return 0, err
+
 }
 func (impl UserRepository) InsertClassMap(id string, classId int) error {
 	classMapping := userModels.ClassMappingUser{
@@ -139,12 +237,13 @@ func (impl UserRepository) ClassMappingTeacher(classname []string) (map[string]i
 	classIDMap := make(map[string]int)
 	// Select class_id and class_name from the database
 	var rows []struct {
-		ClassName string
 		ClassID   int
+		ClassName string
 	}
 	err := impl.dbConnection.Model(&userModels.Class{}).Column("class_id", "class_name").Where("class_name IN (?)", pg.In(classname)).Select(&rows)
 	for _, row := range rows {
 		classIDMap[row.ClassName] = row.ClassID
 	}
+	fmt.Println(err)
 	return classIDMap, err
 }

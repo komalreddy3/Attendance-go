@@ -3,6 +3,7 @@ package teacherResthandler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/komalreddy3/Attendance-go/pkg/login/loginServices"
 	"github.com/komalreddy3/Attendance-go/pkg/teacher/teacherServices"
 	"go.uber.org/zap"
@@ -54,9 +55,19 @@ func (impl TeacherRestHandler) TeacherPunchInHandler(w http.ResponseWriter, r *h
 		impl.logger.Errorw("Invalid request body", "error", err)
 		return
 	}
-	userID := request.UserID
+	//userID := request.UserID
+	userID := impl.loginServices.GetId(cookie)
 	class := request.Class
-	impl.teacherServices.TeacherPunchIn(userID, class)
+	err = impl.teacherServices.TeacherPunchIn(userID, class)
+	if err != nil {
+		// Respond with failure
+		//w.WriteHeader(http.StatusBadRequest)
+		fmt.Println("this is giving error ", err)
+		w.Write([]byte(`{"success": false}`))
+	}
+	// Respond with success
+	//w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"success": true}`))
 }
 func (impl TeacherRestHandler) TeacherPunchOutHandler(w http.ResponseWriter, r *http.Request) {
 	var cookie *http.Cookie
@@ -85,9 +96,18 @@ func (impl TeacherRestHandler) TeacherPunchOutHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	userID := request.UserID
+	//userID := request.UserID
+	userID := impl.loginServices.GetId(cookie)
 	class := request.Class
-	impl.teacherServices.TeacherPunchOut(userID, class)
+	err = impl.teacherServices.TeacherPunchOut(userID, class)
+	if err != nil {
+		// Respond with failure
+		//w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"success": false}`))
+	}
+	// Respond with success
+	//w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"success": true}`))
 }
 func (impl TeacherRestHandler) GetTeacherAttendanceByMonthHandler(w http.ResponseWriter, r *http.Request) {
 	var cookie *http.Cookie
@@ -103,6 +123,7 @@ func (impl TeacherRestHandler) GetTeacherAttendanceByMonthHandler(w http.Respons
 	}
 	if impl.loginServices.AuthenticateRole(cookie, "teacher") == false {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Write([]byte(`{"success": false}`))
 		return
 	}
 	var request struct {
@@ -117,9 +138,11 @@ func (impl TeacherRestHandler) GetTeacherAttendanceByMonthHandler(w http.Respons
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(impl.teacherServices.GetTeacherAttendanceByMonth(request.ID, request.Month, request.Year))
+	userID := impl.loginServices.GetId(cookie)
+	//err = json.NewEncoder(w).Encode(impl.teacherServices.GetTeacherAttendanceByMonth(request.ID, request.Month, request.Year))
+	err = json.NewEncoder(w).Encode(impl.teacherServices.GetTeacherAttendanceByMonth(userID, request.Month, request.Year))
 	if err != nil {
-		impl.logger.Errorw("cant produce output properly for GetStudentAttendanceByMonth", err)
+		impl.logger.Errorw("cant produce output properly for GetTeacherAttendanceByMonth", err)
 	}
 
 }
@@ -137,6 +160,7 @@ func (impl TeacherRestHandler) GetClassAttendanceHandler(w http.ResponseWriter, 
 	}
 	if impl.loginServices.AuthenticateRole(cookie, "teacher") == false {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Write([]byte(`{"success": false}`))
 		return
 	}
 	var request struct {
@@ -152,7 +176,8 @@ func (impl TeacherRestHandler) GetClassAttendanceHandler(w http.ResponseWriter, 
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(impl.teacherServices.GetClassAttendance(request.Class, request.Day, request.Month, request.Year))
+	userID := impl.loginServices.GetId(cookie)
+	err = json.NewEncoder(w).Encode(impl.teacherServices.GetClassAttendance(userID, request.Class, request.Day, request.Month, request.Year))
 	if err != nil {
 		impl.logger.Errorw("cant produce output properly for GetClassAttendance", err)
 	}

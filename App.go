@@ -1,12 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-pg/pg/v10"
 	"github.com/komalreddy3/Attendance-go/api"
 	"go.uber.org/zap"
-	"log"
-	"net/http"
 )
 
 type App struct {
@@ -34,6 +31,10 @@ func NewApp(router *api.MuxRouter, logger *zap.SugaredLogger, db *pg.DB) *App {
 
 func (app *App) Start() {
 	app.router.Init()
-	fmt.Println("running")
-	log.Fatal(http.ListenAndServe("localhost:8080", app.router.Router))
+	//fmt.Println("running")
+
+	//if err := srv.ListenAndServe(); err != nil {
+	//	panic(err)
+	//}
+	//log.Fatal(http.ListenAndServe("localhost:8080", app.router.Router))
 }

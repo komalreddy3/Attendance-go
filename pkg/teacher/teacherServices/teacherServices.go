@@ -1,6 +1,7 @@
 package teacherServices
 
 import (
+	"errors"
 	"fmt"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance/attendanceServices/attendanceServiceBean"
 	"github.com/komalreddy3/Attendance-go/pkg/teacher/teacherRepository"
@@ -14,10 +15,10 @@ type TeacherServiceImpl struct {
 	logger            *zap.SugaredLogger
 }
 type TeacherService interface {
-	TeacherPunchIn(userID, class string)
-	TeacherPunchOut(userID, class string)
+	TeacherPunchIn(userID, class string) error
+	TeacherPunchOut(userID, class string) error
 	GetTeacherAttendanceByMonth(ID string, Month int, Year int) teacherServiceBean.TeacherAttendanceResponse
-	GetClassAttendance(Class string, Day int, Month int, Year int) teacherServiceBean.ClassAttendanceResponse
+	GetClassAttendance(userID string, Class string, Day int, Month int, Year int) teacherServiceBean.ClassAttendanceResponse
 }
 
 func NewTeacherServiceImpl(teacherRepository teacherRepository.TeacherRepo, logger *zap.SugaredLogger) *TeacherServiceImpl {
@@ -26,11 +27,14 @@ func NewTeacherServiceImpl(teacherRepository teacherRepository.TeacherRepo, logg
 		logger:            logger,
 	}
 }
-func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) {
+func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) error {
 	//server.AuthenticateRole(w, r, "teacher")
 
 	// Check if the user is enrolled in the class
-	impl.teacherRepository.EnrollCheckTeacher(userID, class)
+	err := impl.teacherRepository.EnrollCheckTeacher(userID, class)
+	if err != nil {
+		return err
+	}
 	// Check if the user has already punched out from any class on the same day
 	enrolledClasses := impl.teacherRepository.PunchCheckTeacher(userID)
 	for _, enrolledClass := range enrolledClasses {
@@ -43,7 +47,7 @@ func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) {
 			err = impl.teacherRepository.PunchOutCheck(userID, classId)
 			if err == nil {
 				impl.logger.Errorw("You haven't punched out from "+enrolledClass+" yet", "error", err)
-				return
+				return errors.New("not punched out")
 			}
 		}
 	}
@@ -55,16 +59,17 @@ func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) {
 		// Check if the user has punched out
 		// Fetch the ClassID based on the provided class name
 		classId := impl.teacherRepository.FetchClass(class)
+		fmt.Println(classId)
 		// Check if the user has punched out
 		err := impl.teacherRepository.PunchOutCheck(userID, classId)
 		if err == nil {
-			err = impl.teacherRepository.CreatePunchIn(userID, time.Now(), existid, class)
+			err = impl.teacherRepository.CreatePunchInTeacher(userID, time.Now(), existid, class)
 			if err != nil {
 				impl.logger.Errorw("Error recording punch-in", "error", err)
-				return
+				return err
 			}
 			//w.WriteHeader(http.StatusOK)
-			return
+			return nil
 		}
 
 	}
@@ -75,13 +80,14 @@ func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) {
 		// Check if the user has punched out
 		err := impl.teacherRepository.PunchOut(userID, existid)
 		if err == nil {
-			err = impl.teacherRepository.CreatePunchIn(userID, time.Now(), existid, class)
+			fmt.Println("called")
+			err = impl.teacherRepository.CreatePunchInTeacher(userID, time.Now(), existid, class)
 			if err != nil {
 				impl.logger.Errorw("Error recording punch-in", "error", err)
-				return
+				return err
 			}
 			//w.WriteHeader(http.StatusOK)
-			return
+			return nil
 		}
 	}
 	//if err == nil {
@@ -107,38 +113,41 @@ func (impl *TeacherServiceImpl) TeacherPunchIn(userID, class string) {
 		newAttendanceID, err = impl.teacherRepository.AddAttendance(userID, time.Now(), newAttendanceID)
 		if err != nil {
 			impl.logger.Errorw("Error creating or updating attendance record", "error", err)
-			return
+			return err
 		}
 	}
 	fmt.Println(newAttendanceID)
-	err = impl.teacherRepository.CreatePunchIn(userID, time.Now(), newAttendanceID, class)
+	err = impl.teacherRepository.CreatePunchInTeacher(userID, time.Now(), newAttendanceID, class)
 	if err != nil {
 		impl.logger.Errorw("Error recording punch-in", "error", err)
-		return
+		return err
 	}
 	//w.WriteHeader(http.StatusOK)
+	return nil
 
 }
-func (impl *TeacherServiceImpl) TeacherPunchOut(userID, class string) {
+func (impl *TeacherServiceImpl) TeacherPunchOut(userID, class string) error {
 	//server.AuthenticateRole(w, r, "student")
 	currentDate := time.Now()
 	// Check if the user is enrolled in the class
-	impl.teacherRepository.EnrollCheckTeacher(userID, class)
+	//impl.teacherRepository.EnrollCheckTeacher(userID, class)
 	existid, err := impl.teacherRepository.FetchAttendance(userID)
 	if err != nil {
 		impl.logger.Errorw("No attendance record found for the user on the specified day", "error", err)
-		return
+		return err
 	}
-	classid := impl.teacherRepository.FetchClass(class)
+	classname := impl.teacherRepository.PunchOutNull(userID)
+	classid := impl.teacherRepository.FetchClass(classname)
 	// Check if the user has punched in for the given class and attendance record
 	err = impl.teacherRepository.PunchOutCheck(userID, classid)
 	if err != nil {
 		impl.logger.Errorw("You haven't punched in for "+class+" yet", "error", err)
-		return
+		return err
 	}
 	// Update the existing punch record with punch-out time
 	impl.teacherRepository.UpdatePunchOut(existid, classid, currentDate)
 	//w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func (impl *TeacherServiceImpl) GetTeacherAttendanceByMonth(ID string, Month int, Year int) teacherServiceBean.TeacherAttendanceResponse {
@@ -164,7 +173,9 @@ func (impl *TeacherServiceImpl) GetTeacherAttendanceByMonth(ID string, Month int
 				entry = teacherServiceBean.AttendanceEntry{Class: className, FirstPunchIn: record.PunchIn}
 			}
 			entry.LastPunchOut = record.PunchOut
-			classPunches[className] = entry
+			if entry.LastPunchOut != "" {
+				classPunches[className] = entry
+			}
 		}
 		// Add entries for each class to the result
 		for _, v := range classPunches {
@@ -182,9 +193,13 @@ func (impl *TeacherServiceImpl) GetTeacherAttendanceByMonth(ID string, Month int
 
 }
 
-func (impl *TeacherServiceImpl) GetClassAttendance(Class string, Day int, Month int, Year int) teacherServiceBean.ClassAttendanceResponse {
+func (impl *TeacherServiceImpl) GetClassAttendance(userID string, Class string, Day int, Month int, Year int) teacherServiceBean.ClassAttendanceResponse {
 	//server.AuthenticateRole(w, r, "teacher")
-
+	// Check if the user is enrolled in the class
+	err := impl.teacherRepository.EnrollCheckTeacher(userID, Class)
+	if err != nil {
+		return teacherServiceBean.ClassAttendanceResponse{}
+	}
 	// Fetch attendance records for the student for the given month and year
 	var ids []int
 	ids = impl.teacherRepository.FetchStudentAttendance(Day, Month, Year)
@@ -206,13 +221,24 @@ func (impl *TeacherServiceImpl) GetClassAttendance(Class string, Day int, Month 
 			var className string
 			className = impl.teacherRepository.ClassMapAttendancePunch(record.ID)
 			if className == Class {
-				// Check if class entry exists, and update first punch-in and last punch-out
-				entry, exists := classPunches[className]
-				if !exists {
-					entry = teacherServiceBean.ClassAttendanceEntry{Id: userID, FirstPunchIn: record.PunchIn}
+				//// Check if class entry exists, and update first punch-in and last punch-out
+				//entry, exists := classPunches[className]
+				//if !exists {
+				//	entry = teacherServiceBean.ClassAttendanceEntry{Id: userID, FirstPunchIn: record.PunchIn}
+				//}
+				//entry.LastPunchOut = record.PunchOut
+				//classPunches[className] = entry
+				if userID != "" {
+					// Check if class entry exists, and update first punch-in and last punch-out
+					entry, exists := classPunches[className]
+					if !exists {
+						entry = teacherServiceBean.ClassAttendanceEntry{Id: userID, FirstPunchIn: record.PunchIn}
+					}
+					entry.LastPunchOut = record.PunchOut
+					if entry.LastPunchOut != "" {
+						classPunches[className] = entry
+					}
 				}
-				entry.LastPunchOut = record.PunchOut
-				classPunches[className] = entry
 			}
 		}
 		// Add entries for each class to the result

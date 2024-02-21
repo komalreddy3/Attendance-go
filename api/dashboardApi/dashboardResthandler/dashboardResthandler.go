@@ -2,6 +2,7 @@ package dashboardResthandler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/komalreddy3/Attendance-go/pkg/dashboard/dashboardServices"
 	"github.com/komalreddy3/Attendance-go/pkg/login/loginServices"
 	"go.uber.org/zap"
@@ -40,6 +41,7 @@ func (impl DashboardRestHandler) Principal(w http.ResponseWriter, r *http.Reques
 	}
 	if impl.loginServices.AuthenticateRole(cookie, "principal") == false {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Write([]byte(`{"success": false}`))
 		return
 	}
 	impl.dashboardServices.Principal()
@@ -57,7 +59,9 @@ func (impl DashboardRestHandler) Teacher(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if impl.loginServices.AuthenticateRole(cookie, "teacher") == false {
+		fmt.Println("this is called for redirecting")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Write([]byte(`{"success": false}`))
 		return
 	}
 	impl.dashboardServices.Teacher()
@@ -75,7 +79,9 @@ func (impl DashboardRestHandler) Student(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if impl.loginServices.AuthenticateRole(cookie, "student") == false {
+		fmt.Println("this is called actually")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		w.Write([]byte(`{"success": false}`))
 		return
 	}
 	impl.dashboardServices.Student()

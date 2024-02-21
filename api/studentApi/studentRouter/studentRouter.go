@@ -20,6 +20,7 @@ func NewStudentRouterImpl(StudentHandler studentResthandler.StudentHandler) *Stu
 func (impl *StudentRouter) SetupRoutes(StudentSubRouter *mux.Router) {
 	StudentSubRouter.Path("/punchIn").HandlerFunc(impl.StudentHandler.StudentPunchInHandler).Methods("POST")
 	StudentSubRouter.Path("/punchOut").HandlerFunc(impl.StudentHandler.StudentPunchOutHandler).Methods("POST")
-	StudentSubRouter.Path("/attendance").HandlerFunc(impl.StudentHandler.GetStudentAttendanceByMonthHandler).Methods("GET")
+	StudentSubRouter.Path("/removePunchIn").HandlerFunc(impl.StudentHandler.RemovePunchinHandler).Methods("POST")
+	StudentSubRouter.Path("/attendance").HandlerFunc(impl.StudentHandler.GetStudentAttendanceByMonthHandler).Methods("GET", "POST")
 
 }

@@ -28,6 +28,7 @@ type StudentRepo interface {
 	CreatePunchIn(userID string, currentDate time.Time, attendanceID int, className string) error
 	AddAttendance(userid string, currentDate time.Time, newAttendanceID int) (int, error)
 	UpdatePunchOut(punchid int, classid int, currentDate time.Time) error
+	FetchClassUser(userid string) int
 }
 
 func NewStudentRepositoryImpl(dbConnection *pg.DB, userServices userServices.UserService, attendanceServices attendanceServices.AttendanceService, logger *zap.SugaredLogger) *StudentRepository {
@@ -37,6 +38,9 @@ func NewStudentRepositoryImpl(dbConnection *pg.DB, userServices userServices.Use
 		attendanceServices: attendanceServices,
 		logger:             logger,
 	}
+}
+func (impl *StudentRepository) FetchClassUser(userid string) int {
+	return impl.userServices.FetchClassUser(userid)
 }
 func (impl *StudentRepository) EnrollCheck(userid, class string) {
 	// Check if the user is enrolled in the class

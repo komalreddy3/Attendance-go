@@ -16,7 +16,7 @@ type TeacherRepository struct {
 	logger             *zap.SugaredLogger
 }
 type TeacherRepo interface {
-	EnrollCheckTeacher(userid, class string)
+	EnrollCheckTeacher(userid, class string) error
 	PunchCheckTeacher(userid string) []string
 	FetchAttendance(userid string) (int, error)
 	FetchClass(enrolledClass string) int
@@ -31,6 +31,8 @@ type TeacherRepo interface {
 	ClassMapAttendancePunch(id int) string
 	FetchStudentAttendance(day, month, year int) []int
 	FetchStudent(userid string) string
+	PunchOutNull(userid string) string
+	CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error
 }
 
 func NewTeacherRepositoryImpl(dbConnection *pg.DB, userServices userServices.UserService, attendanceServices attendanceServices.AttendanceService, logger *zap.SugaredLogger) *TeacherRepository {
@@ -41,7 +43,13 @@ func NewTeacherRepositoryImpl(dbConnection *pg.DB, userServices userServices.Use
 		logger:             logger,
 	}
 }
-func (impl *TeacherRepository) EnrollCheckTeacher(userid, class string) {
+func (impl *TeacherRepository) CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error {
+	return impl.attendanceServices.CreatePunchInTeacher(userID, currentDate, attendanceID, className)
+}
+func (impl *TeacherRepository) PunchOutNull(userid string) string {
+	return impl.attendanceServices.PunchOutNull(userid)
+}
+func (impl *TeacherRepository) EnrollCheckTeacher(userid, class string) error {
 	// Check if the user is enrolled in the class
 	//var classMappingUser teacherModels.ClassMappingUser
 	//err := impl.dbConnection.Model(&classMappingUser).
@@ -50,8 +58,9 @@ func (impl *TeacherRepository) EnrollCheckTeacher(userid, class string) {
 	err := impl.userServices.CheckEnrollment(userid, class)
 	if err != nil {
 		impl.logger.Errorw("You haven't enrolled in this class", "error", err)
-		return
+		return err
 	}
+	return nil
 
 }
 func (impl *TeacherRepository) PunchCheckTeacher(userid string) []string {

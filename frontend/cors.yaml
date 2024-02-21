@@ -1,0 +1,22 @@
+apiVersion: citrix.com/v1beta1
+kind: corspolicy
+metadata:
+  name: corspolicy-example
+spec:
+  servicenames:
+    - "frontend-service"
+  allow_origin:
+    - "*"
+    - "http://localhost:9000/login"
+  allow_methods:
+    - "POST"
+    - "GET"
+    - "OPTIONS"
+  allow_headers:
+    - "Origin"
+    - "X-Requested-With"
+    - "Content-Type"
+    - "Accept"
+    - "X-PINGOTHER"
+  max_age: 86400
+  allow_credentials: true

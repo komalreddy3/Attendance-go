@@ -24,6 +24,8 @@ type AttendanceService interface {
 	AddAttendance(userid string, currentDate time.Time, newAttendanceID int) (int, error)
 	PunchOut(userID string, id int) error
 	PunchOutCheck(userid string, classid int) error
+	PunchOutNull(userid string) string
+	CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error
 }
 
 func NewAttendanceServiceImpl(attendanceRepository attendanceRepository.AttendanceRepo, logger *zap.SugaredLogger) *AttendanceServiceImpl {
@@ -31,6 +33,12 @@ func NewAttendanceServiceImpl(attendanceRepository attendanceRepository.Attendan
 		attendanceRepository,
 		logger,
 	}
+}
+func (impl AttendanceServiceImpl) CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error {
+	return impl.attendanceRepository.CreatePunchInTeacher(userID, currentDate, attendanceID, className)
+}
+func (impl AttendanceServiceImpl) PunchOutNull(userid string) string {
+	return impl.attendanceRepository.PunchOutNull(userid)
 }
 func (impl AttendanceServiceImpl) HasAttendance(userid string) (int, error) {
 	return impl.attendanceRepository.HasAttendance(userid)

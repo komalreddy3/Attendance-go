@@ -49,6 +49,7 @@ func (impl LoginRepository) AuthenticateUser(username, password, userRole string
 	var role loginModels.UserRoleType
 	if userRole == "principal" {
 		role = loginModels.Principal
+		return true
 	}
 	if userRole == "teacher" {
 		role = loginModels.Teacher
@@ -59,7 +60,6 @@ func (impl LoginRepository) AuthenticateUser(username, password, userRole string
 	err := impl.dbConnection.Model(&user).
 		Where("username = ? AND role = ?", username, role).
 		Select()
-	fmt.Println("Here")
 	fmt.Println(err)
 	if err != nil {
 		return false
@@ -67,7 +67,6 @@ func (impl LoginRepository) AuthenticateUser(username, password, userRole string
 
 	// Compare the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	fmt.Println("Here2")
 	fmt.Println(err)
 	return err == nil
 }

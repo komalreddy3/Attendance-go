@@ -12,7 +12,7 @@ import (
 	"github.com/komalreddy3/Attendance-go/api/teacherApi"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance"
 	"github.com/komalreddy3/Attendance-go/pkg/dashboard"
-	"github.com/komalreddy3/Attendance-go/pkg/login"
+	Login "github.com/komalreddy3/Attendance-go/pkg/login"
 	"github.com/komalreddy3/Attendance-go/pkg/principal"
 	"github.com/komalreddy3/Attendance-go/pkg/student"
 	"github.com/komalreddy3/Attendance-go/pkg/teacher"

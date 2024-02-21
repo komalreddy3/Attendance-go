@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-pg/pg/v10"
 	"github.com/komalreddy3/Attendance-go/pkg/attendance/attendanceRepository/attendanceModels"
+	"github.com/komalreddy3/Attendance-go/pkg/user/userRepository/userModels"
 	"go.uber.org/zap"
 	"time"
 )
@@ -24,6 +25,8 @@ type AttendanceRepo interface {
 	AddAttendance(userid string, currentDate time.Time, newAttendanceID int) (int, error)
 	PunchOut(userID string, id int) error
 	PunchOutCheck(userid string, classid int) error
+	PunchOutNull(userid string) string
+	CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error
 }
 
 func NewAttendanceRepositoryImpl(dbConnection *pg.DB, logger *zap.SugaredLogger) *AttendanceRepository {
@@ -31,6 +34,19 @@ func NewAttendanceRepositoryImpl(dbConnection *pg.DB, logger *zap.SugaredLogger)
 		dbConnection: dbConnection,
 		logger:       logger,
 	}
+}
+func (impl AttendanceRepository) PunchOutNull(userid string) string {
+
+	var result attendanceModels.Class
+	err := impl.dbConnection.Model(&result).
+		Join("JOIN class_mapping_attendances AS ca ON ca.class_id = class.class_id").
+		Join("JOIN punch_in_outs AS p ON p.id = ca.punch_id").
+		Where("p.user_id = ?", userid).
+		Where("p.punch_out IS NULL").
+		Where("p.punch_in IS NOT NULL").
+		Select()
+	fmt.Println(err)
+	return result.ClassName
 }
 func (impl AttendanceRepository) HasAttendance(userid string) (int, error) {
 	var existingAttendance attendanceModels.Attendance
@@ -107,6 +123,51 @@ func (impl AttendanceRepository) UpdatePunchOut(attedid int, classid int, curren
 		Update()
 	return err
 }
+func (impl AttendanceRepository) CreatePunchInTeacher(userID string, currentDate time.Time, attendanceID int, className string) error {
+	punchInTime := currentDate.Format("15:04:05")
+
+	// Create a new punch-in record
+	_, err := impl.dbConnection.Model(&attendanceModels.PunchInOut{
+		AttendanceID: attendanceID,
+		UserID:       userID,
+		PunchIn:      punchInTime,
+	}).Insert()
+	if err != nil {
+		return err
+	}
+	// Fetch the PunchID for the newly created punch-in record
+	var punch attendanceModels.PunchInOut
+	err = impl.dbConnection.Model(&punch).
+		Column("id").
+		Where("attendance_id = ? AND punch_in = ?", attendanceID, punchInTime).
+		Select()
+	fmt.Println(err)
+	if err != nil {
+		return err
+	}
+
+	//Fetch the ClassID based on the provided class name
+	var classInfo attendanceModels.Class
+	err = impl.dbConnection.Model(&classInfo).
+		Column("class_id").
+		Where("class_name = ?", className).
+		Select()
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var classMapping userModels.ClassMappingUser
+	err = impl.dbConnection.Model(&classMapping).
+		Where("user_id = ? AND class_id IN (SELECT class_id FROM classes WHERE class_name = ?)", userID, className).
+		Select()
+	// Create a new ClassMappingAttendance record
+	_, err = impl.dbConnection.Model(&attendanceModels.ClassMappingAttendance{
+		PunchID: punch.ID,
+		ClassID: classMapping.ClassID,
+	}).Insert()
+	return err
+}
 func (impl AttendanceRepository) CreatePunchIn(userID string, currentDate time.Time, attendanceID int, className string) error {
 	punchInTime := currentDate.Format("15:04:05")
 
@@ -131,19 +192,24 @@ func (impl AttendanceRepository) CreatePunchIn(userID string, currentDate time.T
 	}
 
 	// Fetch the ClassID based on the provided class name
-	var classInfo attendanceModels.Class
-	err = impl.dbConnection.Model(&classInfo).
-		Column("class_id").
-		Where("class_name = ?", className).
+	//var classInfo attendanceModels.Class
+	//err = impl.dbConnection.Model(&classInfo).
+	//	Column("class_id").
+	//	Where("class_name = ?", className).
+	//	Select()
+	//
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return err
+	//}
+	var classMapping userModels.ClassMappingUser
+	err = impl.dbConnection.Model(&classMapping).
+		Where("user_id = ?", userID).
 		Select()
-
-	if err != nil {
-		return err
-	}
 	// Create a new ClassMappingAttendance record
 	_, err = impl.dbConnection.Model(&attendanceModels.ClassMappingAttendance{
 		PunchID: punch.ID,
-		ClassID: classInfo.ClassID,
+		ClassID: classMapping.ClassID,
 	}).Insert()
 	return err
 }

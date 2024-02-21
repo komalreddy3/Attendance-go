@@ -22,6 +22,9 @@ type UserService interface {
 	InsertClassMap(id string, classId int) error
 	ClassMappingTeacher(classname []string) (map[string]int, error)
 	FetchUser(role string) []userServiceBean.CustomUserInfo
+	FetchClassUser(userid string) int
+	FetchClasses(username string) []string
+	AllClasses() []string
 }
 
 func NewUserServiceImpl(userRepository userRepository.UserRepo, logger *zap.SugaredLogger) *UserServiceImpl {
@@ -29,6 +32,12 @@ func NewUserServiceImpl(userRepository userRepository.UserRepo, logger *zap.Suga
 		userRepository,
 		logger,
 	}
+}
+func (impl UserServiceImpl) AllClasses() []string {
+	return impl.userRepository.AllClasses()
+}
+func (impl UserServiceImpl) FetchClasses(username string) []string {
+	return impl.userRepository.FetchClasses(username)
 }
 func (impl UserServiceImpl) CheckEnrollment(userid, class string) error {
 	return impl.userRepository.CheckEnrollment(userid, class)
@@ -38,6 +47,9 @@ func (impl UserServiceImpl) CheckPunchOut(userid string) ([]string, error) {
 }
 func (impl UserServiceImpl) FetchClass(enrolledClass string) int {
 	return impl.userRepository.FetchClass(enrolledClass)
+}
+func (impl UserServiceImpl) FetchClassUser(userid string) int {
+	return impl.userRepository.FetchClassUser(userid)
 }
 func (impl UserServiceImpl) FetchStudent(userid string) string {
 	return impl.userRepository.FetchStudent(userid)

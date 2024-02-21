@@ -19,6 +19,7 @@ type LoginService interface {
 	NewJWT(PrivateKey []byte, PublicKey []byte) loginModels.JWT
 	AuthenticateRole(cookie *http.Cookie, check string) bool
 	Login(username, password, userRole string) string
+	GetId(cookie *http.Cookie) string
 }
 
 func NewLoginServiceImpl(loginRepository loginRepository.LoginRepo, logger *zap.SugaredLogger) *LoginServiceImpl {
@@ -61,6 +62,16 @@ func (impl *LoginServiceImpl) AuthenticateRole(cookie *http.Cookie, check string
 	fmt.Println("good to go")
 	return true
 }
+
+func (impl *LoginServiceImpl) GetId(cookie *http.Cookie) string {
+
+	fmt.Println("CONTENT:", cont)
+	content, err := loginModels.JwtToken.Validate(cookie.Value)
+	if err != nil {
+		impl.logger.Errorw("Something wrong with token validation", err)
+	}
+	return content.(string)
+}
 func (impl *LoginServiceImpl) Login(username, password, userRole string) string {
 	userID, err := impl.loginRepository.CheckCreds(username, userRole)
 	if err != nil {
@@ -68,7 +79,7 @@ func (impl *LoginServiceImpl) Login(username, password, userRole string) string 
 		return ""
 	}
 	if impl.loginRepository.AuthenticateUser(username, password, userRole) {
-		fmt.Println("Entered")
+
 		prvKey, err := os.ReadFile("private.pem")
 		if err != nil {
 			log.Fatalln(err)
@@ -88,6 +99,6 @@ func (impl *LoginServiceImpl) Login(username, password, userRole string) string 
 
 		return tok
 	}
-	impl.logger.Errorw("Invalid login credentials", "error", err)
+	//impl.logger.Errorw("Invalid login credentials", "error", err)
 	return ""
 }

@@ -1,0 +1,54 @@
+version: '3.3'
+services:
+  backend:
+    image: komalreddyk/backendgo:latest
+    container_name: backend
+    ports:
+      - "9000:9000"
+    environment:
+      - DB_ADDR=database
+    links:
+        - "database:db"
+#    depends_on:
+#      - database
+    networks:
+      - mynet
+  database:
+    image: postgres
+    container_name: database
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=abc@123
+      - POSTGRES_DB=management
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+    ports:
+      - "6000:5432"
+    networks:
+      - mynet
+  frontend:
+    image: komalreddyk/frontendgo:latest
+#    build:
+#      args:
+#        react_app_B_ADDR: backend
+    container_name: frontend
+    ports:
+      - "8000:8000"
+    environment:
+      - B_ADDR=backend
+      - react_app_B_ADDR=backend
+    links:
+      - backend
+    depends_on:
+      - backend
+    networks:
+      - mynet
+
+
+volumes:
+  database_postgres:
+
+## Networks to be created to facilitate communication between containers
+networks:
+  mynet:
+    driver: bridge
