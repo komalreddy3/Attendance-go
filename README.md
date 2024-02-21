@@ -1,6 +1,6 @@
 
 # Attendance Management System
-**_Using golang (Backend) ReactJS (Frontend) Postgresql (Database) Zap Sugared Logger (Logging) JWT token (Authentication and Authorisation)_**
+**_Using golang (Backend)[Wire for dependency injection] ReactJS (Frontend) Postgresql (Database) Zap Sugared Logger (Logging) JWT token (Authentication and Authorisation)_**
 
 ## Project Structure 
 
