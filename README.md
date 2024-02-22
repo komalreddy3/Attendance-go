@@ -501,17 +501,27 @@ https://github.com/komalreddy3/Attendance-go/assets/82363361/786029a4-bb26-40a7-
 ![Screenshot from 2024-02-22 11-02-57](https://github.com/komalreddy3/Attendance-go/assets/82363361/d4e10c9a-27eb-4361-88a1-f28b8a661143)
 
 
+## Devtron
 
+![Screenshot from 2024-02-22 12-58-09](https://github.com/komalreddy3/Attendance-go/assets/82363361/ed890308-5088-4d71-8daf-98c1a79f29a7)
 
+![Screenshot from 2024-02-22 12-58-17](https://github.com/komalreddy3/Attendance-go/assets/82363361/3576aa53-c37b-4f4f-b75f-e7333cec5ba4)
 
+![Screenshot from 2024-02-22 12-58-26](https://github.com/komalreddy3/Attendance-go/assets/82363361/23525c6d-c93b-44a2-8f04-24215ded6d5e)
 
+![Screenshot from 2024-02-22 12-58-36](https://github.com/komalreddy3/Attendance-go/assets/82363361/c171fec9-8ff8-4754-928e-3a37bfaa97b8)
 
+![Screenshot from 2024-02-22 12-58-44](https://github.com/komalreddy3/Attendance-go/assets/82363361/e971c253-571c-4766-bd44-7aa90b11dda6)
 
+![Screenshot from 2024-02-22 12-58-53](https://github.com/komalreddy3/Attendance-go/assets/82363361/4cf5e13d-3872-4431-bb16-678eb1c50df0)
 
+![Screenshot from 2024-02-22 12-59-01](https://github.com/komalreddy3/Attendance-go/assets/82363361/4632ea6b-42e5-4311-be43-9bb7717b6727)
 
+![Screenshot from 2024-02-22 12-59-08](https://github.com/komalreddy3/Attendance-go/assets/82363361/aa802cea-d93c-4207-beeb-e79b2a1783ff)
 
+![Screenshot from 2024-02-22 12-59-15](https://github.com/komalreddy3/Attendance-go/assets/82363361/3bf20819-a605-480e-84d8-44ebdf000553)
 
-
+![Screenshot from 2024-02-22 12-59-28](https://github.com/komalreddy3/Attendance-go/assets/82363361/b96f8d5e-2a2c-4566-b595-08bee13135df)
 
 
 
