@@ -462,3 +462,62 @@ Represents the structure for handling JSON Web Tokens (JWT) for authentication a
 Username : user1
 
 Password: user1
+
+
+
+
+https://github.com/komalreddy3/Attendance-go/assets/82363361/786029a4-bb26-40a7-a0c3-4cf96a82fbf9
+
+
+
+## Preview
+
+![Screenshot from 2024-02-22 10-55-24](https://github.com/komalreddy3/Attendance-go/assets/82363361/5bb09ae6-a5ef-4b5c-9086-40b339c4da6a)
+
+![Screenshot from 2024-02-22 10-55-49](https://github.com/komalreddy3/Attendance-go/assets/82363361/9a26bf74-c0f1-4a09-b5c9-10dbe8b0ca96)
+
+
+![Screenshot from 2024-02-22 10-56-53](https://github.com/komalreddy3/Attendance-go/assets/82363361/dbfbedc1-cb87-4ce6-a25b-2094a4513bbd)
+
+
+
+![Screenshot from 2024-02-22 10-58-43](https://github.com/komalreddy3/Attendance-go/assets/82363361/1a32deaf-1134-4681-80a9-5f275f669cdd)
+
+
+![Screenshot from 2024-02-22 10-58-58](https://github.com/komalreddy3/Attendance-go/assets/82363361/71b0bbff-473e-4db0-ac06-0d5d102490f1)
+
+
+![Screenshot from 2024-02-22 10-59-08](https://github.com/komalreddy3/Attendance-go/assets/82363361/c4a05c01-42b4-4256-9950-69e96e604775)
+
+![Screenshot from 2024-02-22 10-59-32](https://github.com/komalreddy3/Attendance-go/assets/82363361/9b9a0641-1e30-490e-b858-ae30bf39af72)
+
+
+![Screenshot from 2024-02-22 10-59-43](https://github.com/komalreddy3/Attendance-go/assets/82363361/8f709275-f96c-4b74-a618-b13a6a217780)
+
+![Screenshot from 2024-02-22 11-02-19](https://github.com/komalreddy3/Attendance-go/assets/82363361/71e85f1b-1750-4f84-ad8e-99787f0f8f90)
+
+![Screenshot from 2024-02-22 11-02-47](https://github.com/komalreddy3/Attendance-go/assets/82363361/05aeb0af-c9f5-416b-a9cf-02049ae877d4)
+
+![Screenshot from 2024-02-22 11-02-57](https://github.com/komalreddy3/Attendance-go/assets/82363361/d4e10c9a-27eb-4361-88a1-f28b8a661143)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
