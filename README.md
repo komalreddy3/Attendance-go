@@ -456,3 +456,9 @@ Represents the structure for handling JSON Web Tokens (JWT) for authentication a
 **/student/student-attendance** :  Retrieve attendance of student (user) by providing input userID,month and year
 
 **/** : To avoid any route apart from above list by redirecting to login
+
+## Credentials (Principal)
+
+Username : user1
+
+Password: user1
